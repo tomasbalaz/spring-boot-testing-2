@@ -1,11 +1,15 @@
 package sk.balaz.springboottesting.customer;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 
 import java.util.UUID;
 
+@Entity
 public class Customer {
 
+    @Id
     private UUID id;
 
     @NotBlank
@@ -18,6 +22,8 @@ public class Customer {
         this.name = name;
         this.phoneNumber = phoneNumber;
     }
+
+    public Customer() {}
 
     public UUID getId() {
         return id;

@@ -9,6 +9,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
+//https://assertj.github.io/doc/
 @DataJpaTest
 class CustomerRepositoryTest {
 

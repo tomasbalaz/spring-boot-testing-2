@@ -2,6 +2,8 @@ package sk.balaz.springboottesting.customer;
 
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class CustomerRegistrationService {
 
@@ -17,5 +19,18 @@ public class CustomerRegistrationService {
         // - 2.1 if yes return
         // - 2.2 thrown an exception
         // 3. Save customer
+
+        String phoneNumber = request.getCustomer().getPhoneNumber();
+        Optional<Customer> customerOptional = customerRepository
+                .selectCustomerByPhoneNumber(phoneNumber);
+        if (customerOptional.isPresent()) {
+            Customer customer = customerOptional.get();
+            // customer has been already registered
+            if(customer.getName().equals(request.getCustomer().getName())) {
+                return;
+            }
+            throw new IllegalStateException(String.format("phone number [%s] is taken", phoneNumber));
+        }
+        customerRepository.save(request.getCustomer());
     }
 }

@@ -53,4 +53,27 @@ class CustomerRegistrationServiceTest {
         assertThat(customerArgumentCaptorValue).isEqualTo(customer);
 
     }
+
+    @Test
+    void itShouldNotSaveCustomerWhenCustomerExists() {
+        //given a phone number and customer
+        String phoneNumber = "00000";
+        Customer customer = new Customer(UUID.randomUUID(), "Abel", phoneNumber);
+
+        // ... a request
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
+
+        // ... an existing customer is returned
+        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
+                .willReturn(Optional.of(customer));
+
+        // When
+        underTest.registerNewCustomer(request);
+
+        // Then
+        //then(customerRepository).should(never()).save(any());
+        then(customerRepository).should().selectCustomerByPhoneNumber(phoneNumber);
+        then(customerRepository).shouldHaveNoMoreInteractions();
+
+    }
 }

@@ -11,8 +11,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 
 class CustomerRegistrationServiceTest {
 
@@ -74,6 +77,31 @@ class CustomerRegistrationServiceTest {
         //then(customerRepository).should(never()).save(any());
         then(customerRepository).should().selectCustomerByPhoneNumber(phoneNumber);
         then(customerRepository).shouldHaveNoMoreInteractions();
+
+    }
+
+    @Test
+    void itShouldThrownWhenPhoneNumberIsTaken() {
+        //given a phone number and customer
+        String phoneNumber = "00000";
+        Customer customer = new Customer(UUID.randomUUID(), "Abel", phoneNumber);
+        Customer customerTwo = new Customer(UUID.randomUUID(), "John", phoneNumber);
+
+        // ... a request
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
+
+        // ... an existing customer is returned
+        given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
+                .willReturn(Optional.of(customerTwo));
+
+        // When
+        // Then
+        assertThatThrownBy(() -> underTest.registerNewCustomer(request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage(String.format("phone number [%s] is taken", phoneNumber));
+
+        //Finally
+        then(customerRepository).should(never()).save(any(Customer.class));
 
     }
 }

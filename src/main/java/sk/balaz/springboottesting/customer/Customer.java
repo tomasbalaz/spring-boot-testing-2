@@ -1,5 +1,6 @@
 package sk.balaz.springboottesting.customer;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
@@ -7,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 
 @Entity
+@JsonIgnoreProperties(value = {"id"}, allowGetters = true)
 public class Customer {
 
     @Id

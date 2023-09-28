@@ -1,15 +1,22 @@
 package sk.balaz.springboottesting.payment;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 
+@Entity
 public class Payment {
-    Long id;
-    UUID customerId;
-    BigDecimal amount;
-    Currency currency;
-    String source;
-    String description;
+    @Id
+    @GeneratedValue
+    private Long id;
+    private UUID customerId;
+    private BigDecimal amount;
+    private Currency currency;
+    private String source;
+    private String description;
 
     public Payment(Long id,
                    UUID customerId,

@@ -24,6 +24,12 @@ public class PaymentService {
     }
 
     public void chargeCard(UUID userId, PaymentRequest request) {
+        // 1. Does customer exist if not throw an exception
+        // 2. Do we support currency if not throw an exception
+        // 3. Charge card
+        // 4. If not debited throw an exception
+        // 5. Insert payment
+        // 6. TODO: send sms
 
     }
 }

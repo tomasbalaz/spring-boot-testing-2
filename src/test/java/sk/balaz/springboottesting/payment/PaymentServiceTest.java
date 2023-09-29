@@ -15,9 +15,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 
 class PaymentServiceTest {
     @Mock
@@ -71,7 +74,9 @@ class PaymentServiceTest {
         // Then
         ArgumentCaptor<Payment> paymentArgumentCaptor =
                 ArgumentCaptor.forClass(Payment.class);
+
         then(paymentRepository).should().save(paymentArgumentCaptor.capture());
+
         Payment paymentArgumentCaptorValue = paymentArgumentCaptor.getValue();
         assertThat(paymentArgumentCaptorValue)
                 .usingRecursiveComparison()
@@ -79,5 +84,41 @@ class PaymentServiceTest {
                 .isEqualTo(request.getPayment());
 
         assertThat(paymentArgumentCaptorValue.getCustomerId()).isEqualTo(customerId);
+    }
+
+    @Test
+    void itShouldThrowWhenCardIsNotCharged() {
+        // Given
+        UUID customerId = UUID.randomUUID();
+        PaymentRequest request = new PaymentRequest(
+                new Payment(
+                        null,
+                        customerId,
+                        new BigDecimal("100.00"),
+                        Currency.USD,
+                        "card123xx",
+                        "Donation"
+                )
+        );
+
+        // customer exists
+        given(customerRepository.findById(customerId))
+                .willReturn(Optional.of(mock(Customer.class)));
+
+        // card is charged successfully
+        given(cardPaymentCharger.chargeCard(
+                request.getPayment().getSource(),
+                request.getPayment().getAmount(),
+                request.getPayment().getCurrency(),
+                request.getPayment().getDescription()
+        )).willReturn(new CardPaymentCharge(false));
+
+        // When
+        assertThatThrownBy(() -> underTest.chargeCard(customerId,request) )
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(String.format("Card not debited for customer [%s] ",customerId));
+
+        // Then
+        then(paymentRepository).should(never()).save(any(Payment.class));
     }
 }

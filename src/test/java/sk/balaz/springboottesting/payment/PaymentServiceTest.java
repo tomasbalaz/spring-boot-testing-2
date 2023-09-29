@@ -150,4 +150,22 @@ class PaymentServiceTest {
         then(cardPaymentCharger).shouldHaveNoInteractions();
         then(paymentRepository).shouldHaveNoInteractions();
     }
+
+    @Test
+    void itShouldThrownWhenCustomerNotFound() {
+
+        UUID customerId = UUID.randomUUID();
+
+        // customer exists
+        given(customerRepository.findById(customerId))
+                .willReturn(Optional.empty());
+
+        // When
+        assertThatThrownBy(() -> underTest.chargeCard(customerId, new PaymentRequest(new Payment())))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage(String.format("Customer with id [%s] not found",customerId));
+
+        then(cardPaymentCharger).shouldHaveNoInteractions();
+        then(paymentRepository).shouldHaveNoInteractions();
+    }
 }

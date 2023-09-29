@@ -7,13 +7,13 @@ import sk.balaz.springboottesting.customer.CustomerRepository;
 import sk.balaz.springboottesting.payment.card.CardPaymentCharge;
 import sk.balaz.springboottesting.payment.card.CardPaymentCharger;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class PaymentService {
-
+    private static final List<Currency> ACCEPTED_CURRENCIES = List.of(Currency.USD, Currency.GBP);
     private final PaymentRepository paymentRepository;
     private final CustomerRepository customerRepository;
     private final CardPaymentCharger cardPaymentCharger;
@@ -35,7 +35,7 @@ public class PaymentService {
         }
 
         // 2. Do we support currency if not throw an exception
-        boolean isCurrencySupported = Arrays.stream(Currency.values())
+        boolean isCurrencySupported = ACCEPTED_CURRENCIES.stream()
                 .anyMatch(currency -> currency.equals(request.getPayment().getCurrency()));
         if(!isCurrencySupported) {
             throw new IllegalStateException(

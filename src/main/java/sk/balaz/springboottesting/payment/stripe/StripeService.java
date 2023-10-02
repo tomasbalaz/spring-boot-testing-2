@@ -15,7 +15,7 @@ import java.util.Map;
 @Service
 public class StripeService implements CardPaymentCharger {
 
-    RequestOptions requestOptions = RequestOptions.builder()
+    private final RequestOptions requestOptions = RequestOptions.builder()
             .setApiKey("sk_test_4eC39HqLyjWDarjtT1zdp7dc")
             .build();
 

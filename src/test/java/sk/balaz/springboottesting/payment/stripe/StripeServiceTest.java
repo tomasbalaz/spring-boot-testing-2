@@ -1,5 +1,6 @@
 package sk.balaz.springboottesting.payment.stripe;
 
+import com.stripe.exception.ApiConnectionException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
 import com.stripe.net.RequestOptions;
@@ -15,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.BDDMockito.given;
@@ -63,5 +65,25 @@ class StripeServiceTest {
         assertThat(optionsArgumentCaptor.getValue()).isNotNull();
         assertThat(cardPaymentCharge).isNotNull();
         assertThat(cardPaymentCharge.isCardDebited()).isTrue();
+    }
+
+    @Test
+    void itShouldThrowWhenStripeNotCharged() throws StripeException {
+        // Given
+        String cardSource = "0x0x0x";
+        BigDecimal amount = new BigDecimal("100.0");
+        Currency currency = Currency.USD;
+        String description = "Visa";
+
+        given(stripeApi.create(anyMap(), any())).willThrow(new ApiConnectionException("Cannot make stripe charge"));
+
+        // When
+        // Then
+        assertThatThrownBy(() -> underTest.chargeCard(cardSource, amount, currency, description))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("Cannot make stripe charge");
+
+        then(stripeApi).should().create(anyMap(), any());
+        then(stripeApi).shouldHaveNoMoreInteractions();
     }
 }

@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 
 @Entity
-@JsonIgnoreProperties(value = {"id"}, allowGetters = true)
+@JsonIgnoreProperties(allowGetters = true)
 public class Customer {
 
     @Id

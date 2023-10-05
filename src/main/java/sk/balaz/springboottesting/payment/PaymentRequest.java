@@ -7,7 +7,7 @@ public class PaymentRequest {
     private final Payment payment;
 
     public PaymentRequest(
-            @JsonProperty Payment payment) {
+            @JsonProperty("payment") Payment payment) {
         this.payment = payment;
     }
 

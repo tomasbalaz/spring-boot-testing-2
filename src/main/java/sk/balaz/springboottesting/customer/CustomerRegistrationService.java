@@ -1,6 +1,7 @@
 package sk.balaz.springboottesting.customer;
 
 import org.springframework.stereotype.Service;
+import sk.balaz.springboottesting.utils.PhoneNumberValidator;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -9,9 +10,12 @@ import java.util.UUID;
 public class CustomerRegistrationService {
 
     private final CustomerRepository customerRepository;
+    private final PhoneNumberValidator phoneNumberValidator;
 
-    public CustomerRegistrationService(CustomerRepository customerRepository) {
+    public CustomerRegistrationService(CustomerRepository customerRepository,
+                                       PhoneNumberValidator phoneNumberValidator) {
         this.customerRepository = customerRepository;
+        this.phoneNumberValidator = phoneNumberValidator;
     }
 
     public void registerNewCustomer(CustomerRegistrationRequest request) {
@@ -22,7 +26,9 @@ public class CustomerRegistrationService {
         // 3. Save customer
 
         String phoneNumber = request.getCustomer().getPhoneNumber();
-        //TODO: Validate phone number is valid
+        if(!phoneNumberValidator.test(phoneNumber)) {
+            throw new IllegalStateException(String.format("Phone number [%s] is not valid", phoneNumber));
+        }
 
         Optional<Customer> customerOptional = customerRepository
                 .selectCustomerByPhoneNumber(phoneNumber);

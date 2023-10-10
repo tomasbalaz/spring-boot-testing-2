@@ -1,7 +1,10 @@
 package sk.balaz.springboottesting.utils;
 
+import org.springframework.stereotype.Service;
+
 import java.util.function.Predicate;
 
+@Service
 public class PhoneNumberValidator implements Predicate<String> {
 
     @Override

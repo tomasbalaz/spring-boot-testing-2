@@ -44,7 +44,7 @@ class PaymentIntegrationTest {
         Customer customer = new Customer(
                 customerId,
                 "James",
-                "00000");
+                "+4470000000");
         // ... Register request
         CustomerRegistrationRequest customerRegistrationRequest = new CustomerRegistrationRequest(customer);
 

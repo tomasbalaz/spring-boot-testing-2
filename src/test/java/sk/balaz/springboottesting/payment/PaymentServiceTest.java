@@ -1,5 +1,6 @@
 package sk.balaz.springboottesting.payment;
 
+import com.twilio.rest.api.v2010.account.Message;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -9,6 +10,7 @@ import sk.balaz.springboottesting.customer.Customer;
 import sk.balaz.springboottesting.customer.CustomerRepository;
 import sk.balaz.springboottesting.payment.card.CardPaymentCharge;
 import sk.balaz.springboottesting.payment.card.CardPaymentCharger;
+import sk.balaz.springboottesting.sms.SmsService;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -29,6 +31,8 @@ class PaymentServiceTest {
     private CustomerRepository customerRepository;
     @Mock
     private CardPaymentCharger cardPaymentCharger;
+    @Mock
+    private SmsService smsService;
     private PaymentService underTest;
 
     @BeforeEach
@@ -37,8 +41,8 @@ class PaymentServiceTest {
         underTest = new PaymentService(
                 paymentRepository,
                 customerRepository,
-                cardPaymentCharger
-        );
+                cardPaymentCharger,
+                smsService);
     }
 
     @Test
@@ -67,6 +71,12 @@ class PaymentServiceTest {
                 request.getPayment().getCurrency(),
                 request.getPayment().getDescription()
         )).willReturn(new CardPaymentCharge(true));
+
+        given(smsService.sendSms(
+                "Tomas",
+                "Anna",
+                "Hello Anna"))
+                .willReturn(Message.Status.DELIVERED);
 
         // When
         underTest.chargeCard(customerId,request);

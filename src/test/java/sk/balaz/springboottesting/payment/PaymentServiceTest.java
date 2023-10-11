@@ -46,7 +46,7 @@ class PaymentServiceTest {
     }
 
     @Test
-    void itShouldChargeCard() {
+    void itShouldChargeCardAndSendSms() {
         // Given
         UUID customerId = UUID.randomUUID();
         PaymentRequest request = new PaymentRequest(
@@ -60,6 +60,10 @@ class PaymentServiceTest {
                 )
         );
 
+        String from = "Tomas";
+        String to = "Anna";
+        String message = "Hello Anna";
+
         // customer exists
         given(customerRepository.findById(customerId))
                 .willReturn(Optional.of(mock(Customer.class)));
@@ -72,10 +76,11 @@ class PaymentServiceTest {
                 request.getPayment().getDescription()
         )).willReturn(new CardPaymentCharge(true));
 
+        // sms is delivered
         given(smsService.sendSms(
-                "Tomas",
-                "Anna",
-                "Hello Anna"))
+                from,
+                to,
+                message))
                 .willReturn(Message.Status.DELIVERED);
 
         // When
@@ -94,6 +99,61 @@ class PaymentServiceTest {
                 .isEqualTo(request.getPayment());
 
         assertThat(paymentArgumentCaptorValue.getCustomerId()).isEqualTo(customerId);
+
+        ArgumentCaptor<String> fromArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> toArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> messageArgumentCaptor = ArgumentCaptor.forClass(String.class);
+
+        then(smsService).should().sendSms(
+                fromArgumentCaptor.capture(),
+                toArgumentCaptor.capture(),
+                messageArgumentCaptor.capture()
+        );
+
+        assertThat(fromArgumentCaptor.getValue()).isEqualTo(from);
+        assertThat(toArgumentCaptor.getValue()).isEqualTo(to);
+        assertThat(messageArgumentCaptor.getValue()).isEqualTo(message);
+    }
+
+    @Test
+    void itShouldThrowWhenSmsIsNotDelivered() {
+        // Given
+        UUID customerId = UUID.randomUUID();
+        PaymentRequest request = new PaymentRequest(
+                new Payment(
+                        null,
+                        customerId,
+                        new BigDecimal("100.00"),
+                        Currency.USD,
+                        "card123xx",
+                        "Donation"
+                )
+        );
+        String to = "Anna";
+
+        // customer exists
+        given(customerRepository.findById(customerId))
+                .willReturn(Optional.of(mock(Customer.class)));
+
+        // card is charged successfully
+        given(cardPaymentCharger.chargeCard(
+                request.getPayment().getSource(),
+                request.getPayment().getAmount(),
+                request.getPayment().getCurrency(),
+                request.getPayment().getDescription()
+        )).willReturn(new CardPaymentCharge(true));
+
+        given(smsService.sendSms(
+                "Tomas",
+                to,
+                "Hello Anna"))
+                .willThrow(new IllegalStateException(String.format("Sms to %s has not been delivered", to)));
+
+        // When
+        // Then
+        assertThatThrownBy(() -> underTest.chargeCard(customerId,request) )
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining(String.format("Sms to %s has not been delivered", to));
     }
 
     @Test
@@ -130,6 +190,7 @@ class PaymentServiceTest {
 
         // Then
         then(paymentRepository).should(never()).save(any(Payment.class));
+        then(smsService).shouldHaveNoInteractions();
     }
 
     @Test
@@ -176,6 +237,7 @@ class PaymentServiceTest {
                 .hasMessage(String.format("Customer with id [%s] not found",customerId));
 
         then(cardPaymentCharger).shouldHaveNoInteractions();
+        then(paymentRepository).shouldHaveNoInteractions();
         then(paymentRepository).shouldHaveNoInteractions();
     }
 }
